@@ -1,0 +1,15 @@
+//lets us do custom expo builds with RN-ble-plx
+{
+    "build":{
+        "development":{
+            "developmentClient":true,
+            "distribution":"internal"
+        },
+        "preview":{
+            "distribution":"internal"
+        },
+        "production":{
+
+        }
+    }
+}
