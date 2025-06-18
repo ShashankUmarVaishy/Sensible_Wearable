@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { getUserInfo } from '../service/user/getUserInfo';
 import { secureStorage } from '../src/storage';
-
+import { removeToken } from '@/service/token/removeToken';
 interface User {
   id: string;
   name: string;
@@ -90,6 +90,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     console.log('Logging out user');
     setUser(null);
     setUserToken(null);
+    await removeToken(userToken);
     await secureStorage.delete('userToken');
     
     // Clear medication data from AsyncStorage

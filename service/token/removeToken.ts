@@ -1,5 +1,8 @@
 import { BACKEND_URL } from '@env';
-export async function removeToken(userToken: string) {
+export async function removeToken(userToken: string | null) {
+  if(!userToken) {
+    return null;
+    }
   try {
     const response = await fetch(`${BACKEND_URL}/api/notification/token`, {
       method: 'DELETE',

@@ -44,7 +44,10 @@ export default function PatientsScreen() {
       if (response.success) {
         // Map API response to Patient interface with status priority
         console.log("data in patients.tsx ", response)
-        const patientsData = response.relations.map((patient: any) => ({
+        const patientsData = response.relations.map((relation: any) => {
+          const patient = relation.patient;
+          console.log("patient in map ", patient)
+          return({
           id: patient.id || patient._id,
           name: patient.name || `${patient.firstName || ''} ${patient.lastName || ''}`.trim(),
           email: patient.email,
@@ -54,7 +57,7 @@ export default function PatientsScreen() {
           status: patient.status || (patient.priority === 'high' ? 'critical' : 
                    patient.priority === 'medium' ? 'needs-attention' : 'stable'),
           avatar: 'person',
-        }));
+        })});
         setPatients(patientsData);
       } else {
         Toast.error(response.message || 'Failed to fetch patients');
@@ -78,38 +81,6 @@ export default function PatientsScreen() {
       fetchPatients();
     }, [userToken])
   );
-
-  // Sort patients by status priority: critical -> needs-attention -> stable
-  // const getSortPriority = (status: string) => {
-  //   switch (status) {
-  //     case 'critical': return 0;
-  //     case 'needs-attention': return 1;
-  //     case 'stable': return 2;
-  //     default: return 3;
-  //   }
-  // };
-
-  // const sortedPatients = patients.sort((a, b) => 
-  //   getSortPriority(a.status) - getSortPriority(b.status)
-  // );
-
-  // const filteredPatients = sortedPatients.filter(patient =>
-  //   patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-  //   (patient.condition && patient.condition.toLowerCase().includes(searchQuery.toLowerCase()))
-  // );
-
-  // const getStatusClass = (status: string) => {
-  //   switch (status) {
-  //     case 'stable':
-  //       return 'bg-green-200 text-green-600';
-  //     case 'needs-attention':
-  //       return 'bg-gray-200 text-black';
-  //     case 'critical':
-  //       return 'bg-red-200 text-red-600 text-bold';
-  //     default:
-  //       return 'bg-white- text-black';
-  //   }
-  // };
 
   const handlePatientPress = (patient: Patient) => {
     Toast.info(`Patient: ${patient.name}`);

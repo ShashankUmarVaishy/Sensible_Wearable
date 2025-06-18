@@ -4,6 +4,7 @@ import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
+  Linking,
   ScrollView,
   Text,
   TextInput,
@@ -21,9 +22,7 @@ interface Caretaker {
   name: string;
   email: string;
   age?: number;
-  condition?: string;
-  lastCheckup?: string;
-  status: 'critical' | 'needs-attention' | 'stable';
+  phoneNumber?: string;
   avatar?: string;
 }
 
@@ -45,8 +44,11 @@ export default function PatientsScreen() {
       const response = await getCaretakers(userToken);
       if (response.success) {
         // Map API response to Patient interface with status priority
-        console.log("data in caretaker.tsx ", response)
-        const caretakerData = response.relations.map((caretaker: any) => ({
+        
+        const caretakerData = response.relations.map((relation:any) => {
+          console.log(relation)
+          const caretaker=relation.caretaker;
+          return({
           id: caretaker.id || caretaker._id,
           name: caretaker.name || `${caretaker.firstName || ''} ${caretaker.lastName || ''}`.trim(),
           email: caretaker.email,
@@ -56,7 +58,7 @@ export default function PatientsScreen() {
           status: caretaker.status || (caretaker.priority === 'high' ? 'critical' : 
                    caretaker.priority === 'medium' ? 'needs-attention' : 'stable'),
           avatar: 'person',
-        }));
+        })});
         setCaretakers(caretakerData);
       } else {
         Toast.error(response.message || 'Failed to fetch patients');
@@ -81,16 +83,7 @@ export default function PatientsScreen() {
     }, [userToken])
   );
 
-  // Sort patients by status priority: critical -> needs-attention -> stable
-  const getSortPriority = (status: string) => {
-    switch (status) {
-      case 'critical': return 0;
-      case 'needs-attention': return 1;
-      case 'stable': return 2;
-      default: return 3;
-    }
-  };
-
+  // Sort patients by status priority: critical -> needs-attention -> stabl
 
   const handleCaretakerPress = async(caretaker: Caretaker) => {
     const caretakerId = caretaker.id;
@@ -114,6 +107,14 @@ export default function PatientsScreen() {
       </SafeAreaView>
     );
   }
+   const dialScreen = async (number: string) => {
+    if (number.length === 10) {
+      const url = `tel:${number}`;
+      Linking.openURL(url);
+    } else {
+      alert("Phone number is not provided");
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -140,33 +141,8 @@ export default function PatientsScreen() {
         />
       </View>
 
-      {/* Stats Cards
-      <View className="flex-row px-5 mb-5 gap-3">
-        <View className="flex-1 bg-white p-4 rounded-xl border border-gray-200 items-center">
-          <Text className="text-2xl font-bold text-black mb-1">{caretakers.length}</Text>
-          <Text className="text-xs text-gray-600">Total Patients</Text>
-        </View>
-        <View className="flex-1 bg-white p-4 rounded-xl border border-gray-200 items-center">
-          <Text className="text-2xl font-bold text-red-600 mb-1">
-            {patients.filter(p => p.status === 'critical').length}
-          </Text>
-          <Text className="text-xs text-gray-600">Critical</Text>
-        </View>
-        <View className="flex-1 bg-white p-4 rounded-xl border border-gray-200 items-center">
-          <Text className="text-2xl font-bold text-yellow-600 mb-1">
-            {patients.filter(p => p.status === 'needs-attention').length}
-          </Text>
-          <Text className="text-xs text-gray-600">Need Attention</Text>
-        </View>
-        <View className="flex-1 bg-white p-4 rounded-xl border border-gray-200 items-center">
-          <Text className="text-2xl font-bold text-green-600 mb-1">
-            {patients.filter(p => p.status === 'stable').length}
-          </Text>
-          <Text className="text-xs text-gray-600">Stable</Text>
-        </View>
-      </View> */}
 
-      {/* Patients List */}
+      {/* caretakers List */}
       <ScrollView 
         className="flex-1" 
         showsVerticalScrollIndicator={false}
@@ -198,33 +174,18 @@ export default function PatientsScreen() {
                   </View> */}
                 </View>
 
-                <View className="mb-4 space-y-2">
-                  <View className="flex-row items-center">
-                    <Ionicons name="calendar-outline" size={16} color="black" />
-                    <Text className="text-sm text-gray-600 ml-2">Age: {caretaker.age || 'N/A'}</Text>
-                  </View>
-                  <View className="flex-row items-center">
-                    <Ionicons name="medical-outline" size={16} color="black" />
-                    <Text className="text-sm text-gray-600 ml-2">{caretaker.condition || 'No condition specified'}</Text>
-                  </View>
-                  <View className="flex-row items-center">
-                    <Ionicons name="time-outline" size={16} color="black" />
-                    <Text className="text-sm text-gray-600 ml-2">Last: {caretaker.lastCheckup || 'No checkup'}</Text>
-                  </View>
-                </View>
-
                 <View className="flex-row justify-around border-t border-gray-100 pt-4">
-                  <TouchableOpacity className="flex-row items-center py-2 px-3">
+                  <TouchableOpacity className="flex-row items-center py-2 px-3"
+                  onPress={()=>dialScreen(caretaker.phoneNumber)}
+                  >
                     <Ionicons name="call-outline" size={16} color="black" />
                     <Text className="text-sm font-medium text-black ml-1.5">Call</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity className="flex-row items-center py-2 px-3">
+                  <TouchableOpacity className="flex-row items-center py-2 px-3"
+                  onPress={handleAddCaretaker}
+                  >
                     <Ionicons name="chatbubble-outline" size={16} color="black" />
                     <Text className="text-sm font-medium text-black ml-1.5">Message</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity className="flex-row items-center py-2 px-3">
-                    <Ionicons name="document-text-outline" size={16} color="black" />
-                    <Text className="text-sm font-medium text-black ml-1.5">Records</Text>
                   </TouchableOpacity>
                 </View>
               </TouchableOpacity>

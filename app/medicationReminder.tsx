@@ -50,12 +50,12 @@ export default function MedicationReminderScreen() {
 
   const predefinedTimeSlots: TimeSlot[] = [
     { id: '1', label: 'Early Morning', time: '05:00' },
-    { id: '1', label: 'Morning', time: '08:00' },
+    { id: '9', label: 'Morning', time: '08:00' },
     { id: '2', label: 'Early Afternoon', time: '11:00' },
-    { id: '2', label: 'Afternoon', time: '01:00' },
+    { id: '5', label: 'Afternoon', time: '01:00' },
     { id: '3', label: 'Evening', time: '18:00' },
     { id: '4', label: 'Early Night', time: '20:00' },
-    { id: '4', label: 'Night', time: '22:00' },
+    { id: '6', label: 'Night', time: '22:00' },
     
   ];
 
