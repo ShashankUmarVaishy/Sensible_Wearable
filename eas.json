@@ -1,15 +1,17 @@
 //lets us do custom expo builds with RN-ble-plx
 {
-    "build":{
-        "development":{
-            "developmentClient":true,
-            "distribution":"internal"
-        },
-        "preview":{
-            "distribution":"internal"
-        },
-        "production":{
-
-        }
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "env": {
+        "BACKEND_URL": "http://192.168.161.142:3000"
+      }
     }
+  }
 }

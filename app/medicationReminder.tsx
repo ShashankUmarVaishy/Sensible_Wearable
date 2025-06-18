@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Toast } from 'toastify-react-native';
+import MedicationAlarmService from '../service/medicationAlarmService';
 
 interface Medication {
   id: string;
@@ -24,6 +25,7 @@ interface Medication {
   dosage: string;
   notes: string;
   createdAt: string;
+  notificationIds?: string[]; // Store notification IDs for scheduled alarms
 }
 
 interface TimeSlot {
@@ -59,7 +61,39 @@ export default function MedicationReminderScreen() {
 
   useEffect(() => {
     loadMedications();
+    initializeAlarmService();
   }, []);
+
+  const initializeAlarmService = async () => {
+    try {
+      await MedicationAlarmService.requestPermissions();
+      MedicationAlarmService.setupNotificationResponseHandler();
+    } catch (error) {
+      console.error('Error initializing alarm service:', error);
+      Toast.error('Failed to initialize medication alarms');
+    }
+  };
+
+  const testAlarm = async (medicationName: string, dosage: string) => {
+    try {
+      const testAlarmData = {
+        medicationId: 'test-' + Date.now(),
+        medicationName,
+        time: '00:00', // Time doesn't matter for test alarms
+        dosage,
+      };
+      
+      const notificationId = await MedicationAlarmService.scheduleTestAlarm(testAlarmData, 5);
+      if (notificationId) {
+        Toast.success('Test alarm will sound in 5 seconds');
+      } else {
+        Toast.error('Failed to schedule test alarm');
+      }
+    } catch (error) {
+      console.error('Error testing alarm:', error);
+      Toast.error('Failed to test alarm');
+    }
+  };
 
   const loadMedications = async () => {
     try {
@@ -161,14 +195,25 @@ export default function MedicationReminderScreen() {
     }
 
     try {
+      const medicationId = Date.now().toString();
+      
+      // Schedule alarms for all selected time intervals
+      const notificationIds = await MedicationAlarmService.scheduleMultipleAlarms(
+        medicationId,
+        newMedication.name.trim(),
+        newMedication.dosage.trim(),
+        newMedication.intervals
+      );
+
       const medication: Medication = {
-        id: Date.now().toString(),
+        id: medicationId,
         name: newMedication.name.trim(),
         image: newMedication.image,
         intervals: newMedication.intervals,
         dosage: newMedication.dosage.trim(),
         notes: newMedication.notes.trim(),
         createdAt: new Date().toISOString(),
+        notificationIds: notificationIds,
       };
 
       const updatedMedications = [...medications, medication];
@@ -185,7 +230,7 @@ export default function MedicationReminderScreen() {
       });
 
       setShowAddModal(false);
-      Toast.success('Medication added successfully');
+      Toast.success(`Medication added with ${notificationIds.length} alarms scheduled`);
     } catch (error) {
       console.error('Error adding medication:', error);
       Toast.error('Failed to add medication');
@@ -194,10 +239,13 @@ export default function MedicationReminderScreen() {
 
   const handleDeleteMedication = async (medicationId: string) => {
     try {
+      // Cancel all alarms for this medication
+      await MedicationAlarmService.cancelAllAlarmsForMedication(medicationId);
+      
       const updatedMedications = medications.filter(med => med.id !== medicationId);
       setMedications(updatedMedications);
       await saveMedications(updatedMedications);
-      Toast.success('Medication removed successfully');
+      Toast.success('Medication and alarms removed successfully');
     } catch (error) {
       console.error('Error deleting medication:', error);
       Toast.error('Failed to remove medication');
@@ -309,7 +357,15 @@ export default function MedicationReminderScreen() {
                       )}
                     </View>
                     <View className="flex-1">
-                      <Text className="text-lg font-bold text-black mb-1">{medication.name}</Text>
+                      <View className="flex-row items-center mb-1">
+                        <Text className="text-lg font-bold text-black mr-2">{medication.name}</Text>
+                        {medication.notificationIds && medication.notificationIds.length > 0 && (
+                          <View className="bg-green-100 px-2 py-1 rounded-full flex-row items-center">
+                            <Ionicons name="alarm" size={12} color="green" />
+                            <Text className="text-xs text-green-600 ml-1">Active</Text>
+                          </View>
+                        )}
+                      </View>
                       {medication.dosage && (
                         <Text className="text-sm text-gray-600 mb-1">Dosage: {medication.dosage}</Text>
                       )}
@@ -318,12 +374,20 @@ export default function MedicationReminderScreen() {
                       </Text>
                     </View>
                   </View>
-                  <TouchableOpacity
-                    className="w-8 h-8 rounded-full bg-red-100 justify-center items-center"
-                    onPress={() => handleDeleteMedication(medication.id)}
-                  >
-                    <Ionicons name="trash" size={16} color="red" />
-                  </TouchableOpacity>
+                  <View className="flex-row gap-2">
+                    <TouchableOpacity
+                      className="w-8 h-8 rounded-full bg-blue-100 justify-center items-center"
+                      onPress={() => testAlarm(medication.name, medication.dosage)}
+                    >
+                      <Ionicons name="alarm" size={16} color="blue" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      className="w-8 h-8 rounded-full bg-red-100 justify-center items-center"
+                      onPress={() => handleDeleteMedication(medication.id)}
+                    >
+                      <Ionicons name="trash" size={16} color="red" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
 
                 {/* Time Intervals */}

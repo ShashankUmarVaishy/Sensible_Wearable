@@ -3,7 +3,6 @@ import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { useEffect, useRef, useState } from "react";
 import { Alert, Platform } from "react-native";
-console
 //what are we going to return from here (very important )
 //a) Notification itself
 //b) the expo-push-token (needs debugging)
@@ -73,7 +72,7 @@ export const usePushNotification = (): PushNotificationState => {
     //   console.log("Permission granted Getting token");
     //   const projectId = Constants.expoConfig?.extra?.eas?.projectId;
     //   console.log("Project ID is:", projectId);
-    //   token = await Notifications.getExpoPushTokenAsync({projectId});
+    //   token = await Notifications.getExpoPushTokenAsync({projectId});          
     //   console.log('Token in the use Push Notification :  ',token);
       if (Platform.OS === "android") {
         Notifications.setNotificationChannelAsync("default", {
