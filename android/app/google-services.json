@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "246678415917",
+    "project_id": "sensiblewearable-11cc4",
+    "storage_bucket": "sensiblewearable-11cc4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:246678415917:android:934c2570b7e2bcff6a66a4",
+        "android_client_info": {
+          "package_name": "com.b23cs019.sensible_wearable"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAsIDT_MVXG6LdLLx7mGOK_ZB0ES3awWTE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
