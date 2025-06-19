@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import { Overlay } from "../components/Overlay";
+import  Overlay from "../components/Overlay";
 
 export default function Home() {
   const [permission, requestPermission] = useCameraPermissions();

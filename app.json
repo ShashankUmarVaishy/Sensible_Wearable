@@ -35,16 +35,12 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "@shopify/react-native-skia",
-      "@config-plugins/react-native-ble-plx",
-       "@react-native-async-storage/async-storage",
-      "react-native-gesture-handler",
-      "react-native-reanimated/plugin",
-      "react-native-screens",
-      "react-native-safe-area-context",
-      "react-native-svg",
-      "react-native-webview",
-      "react-native-edge-to-edge", 
+      //"@config-plugins/react-native-ble-plx",
+      //"@react-native-async-storage/async-storage",
+      // "react-native-reanimated/plugin",
+      //"react-native-screens",
+      //"react-native-safe-area-context",
+      //"react-native-svg",
       "expo-router",
       [
         "expo-splash-screen",

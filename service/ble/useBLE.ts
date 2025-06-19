@@ -1,5 +1,5 @@
 /* eslint-disable no-bitwise */
-import { BlendMode } from "@shopify/react-native-skia";
+
 import * as ExpoDevice from "expo-device";
 import { useMemo, useState } from "react";
 import { PermissionsAndroid, Platform } from "react-native";

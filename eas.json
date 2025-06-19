@@ -1,17 +1,28 @@
-//lets us do custom expo builds with RN-ble-plx
 {
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": {
+        "gradleCommand": ":app:assembleDebug"
+      }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": {
+        "gradleCommand": ":app:assembleRelease"
+      }
     },
     "production": {
       "env": {
         "BACKEND_URL": "http://192.168.161.142:3000"
+      },
+      "android": {
+        "gradleCommand": ":app:assembleRelease"
       }
     }
+  },
+  "cli": {
+    "version": ">= 7.8.6"
   }
 }
