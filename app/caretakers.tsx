@@ -46,13 +46,13 @@ export default function PatientsScreen() {
         // Map API response to Patient interface with status priority
         
         const caretakerData = response.relations.map((relation:any) => {
-          console.log(relation)
           const caretaker=relation.caretaker;
           return({
           id: caretaker.id || caretaker._id,
           name: caretaker.name || `${caretaker.firstName || ''} ${caretaker.lastName || ''}`.trim(),
           email: caretaker.email,
           age: caretaker.age,
+          phoneNumber: caretaker.phoneNumber,
           condition: caretaker.condition || caretaker.medicalCondition,
           lastCheckup: caretaker.lastCheckup || caretaker.lastVisit,
           status: caretaker.status || (caretaker.priority === 'high' ? 'critical' : 
@@ -64,8 +64,7 @@ export default function PatientsScreen() {
         Toast.error(response.message || 'Failed to fetch patients');
       }
     } catch (error) {
-      console.error('Error fetching patients:', error);
-      Toast.error('Failed to fetch patients');
+      Toast.error(error.message || 'An error occurred while fetching patients.');
     } finally {
       setLoading(false);
     }
@@ -85,9 +84,9 @@ export default function PatientsScreen() {
 
   // Sort patients by status priority: critical -> needs-attention -> stabl
 
-  const handleCaretakerPress = async(caretaker: Caretaker) => {
-    const caretakerId = caretaker.id;
+  const handleCaretakerPress = async(caretakerId: string) => {
     const response = await notificationToUser(userToken, caretakerId,"I'm patient","This is notification Body");
+    
   };
 
   const handleAddCaretaker = () => {
@@ -152,6 +151,7 @@ export default function PatientsScreen() {
       >
         <View className="px-5 pb-5">
           {caretakers.map((caretaker) => {
+            
             // const statusClass = getStatusClass(caretaker.status);
             return (
               <TouchableOpacity
@@ -176,13 +176,19 @@ export default function PatientsScreen() {
 
                 <View className="flex-row justify-around border-t border-gray-100 pt-4">
                   <TouchableOpacity className="flex-row items-center py-2 px-3"
-                  onPress={()=>dialScreen(caretaker.phoneNumber)}
+                  onPress={()=>{
+                   if(caretaker.phoneNumber){
+                     dialScreen(caretaker.phoneNumber);
+                   }else{
+                    Toast.error("Phone number is not provided")
+                   }
+                  }}
                   >
                     <Ionicons name="call-outline" size={16} color="black" />
                     <Text className="text-sm font-medium text-black ml-1.5">Call</Text>
                   </TouchableOpacity>
                   <TouchableOpacity className="flex-row items-center py-2 px-3"
-                  onPress={handleAddCaretaker}
+                  onPress={()=>handleCaretakerPress(caretaker.id)}
                   >
                     <Ionicons name="chatbubble-outline" size={16} color="black" />
                     <Text className="text-sm font-medium text-black ml-1.5">Message</Text>

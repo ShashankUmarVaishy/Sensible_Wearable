@@ -3,25 +3,20 @@ import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef } from "react";
 import {
   AppState,
-  Platform,
-  SafeAreaView,
-  StatusBar,
+  Dimensions,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
-import  Overlay from "../components/Overlay";
 
+import { SafeAreaView } from "react-native-safe-area-context";
 export default function Home() {
   const [permission, requestPermission] = useCameraPermissions();
   const qrLock = useRef(false);
   const appState = useRef(AppState.currentState);
   const { type, returnTo } = useLocalSearchParams();
-
   useEffect(() => {
-    console.log('in scanner page')
-    console.log('type:', type);
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       if (
         appState.current.match(/inactive|background/) &&
@@ -35,10 +30,11 @@ export default function Home() {
     return () => {
       subscription.remove();
     };
-  }, []);
+  }, [permission]);
 
   if (!permission) {
     // Camera permissions are still loading
+
     return (
       <SafeAreaView className="absolute inset-0 flex-1 justify-center items-center">
         <Text>Loading camera permissions...</Text>
@@ -48,6 +44,7 @@ export default function Home() {
 
   if (!permission.granted) {
     // Camera permissions are not granted yet
+
     return (
       <SafeAreaView className="absolute inset-0 flex-1 justify-center items-center">
         <Stack.Screen
@@ -61,7 +58,7 @@ export default function Home() {
             We need your permission to show the camera for scanning QR codes
           </Text>
           <TouchableOpacity
-            className="bg-blue-500 px-6 py-3 rounded-lg"
+            className="bg-green-200 px-6 py-3 rounded-lg"
             onPress={requestPermission}
           >
             <Text className="text-white text-center font-semibold">
@@ -73,17 +70,23 @@ export default function Home() {
     );
   }
 
+  console.log("RENDER: Main camera view");
+
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: "red" }}>
       <Stack.Screen
         options={{
           title: "Overview",
           headerShown: false,
         }}
       />
-      {Platform.OS === "android" ? <StatusBar hidden /> : null}
+
       <CameraView
-        style={styles.camera}
+        style={{
+          flex: 1,
+          backgroundColor: "green",
+          minHeight: 300,
+        }}
         facing="back"
         barcodeScannerSettings={{
           barcodeTypes: ["qr", "pdf417"],
@@ -91,30 +94,49 @@ export default function Home() {
         onBarcodeScanned={({ data }) => {
           if (qrLock.current) return;
           qrLock.current = true;
-          
+
           console.log("Scanned Barcode (in scanner.tsx): ", data);
-          if (data && returnTo === 'addHandler') {
-            // Navigate back to addHandler with scanned data
+          if (data && returnTo === "addHandler") {
             router.replace({
-              pathname: '/addHandler',
-              params: { 
+              pathname: "/addHandler",
+              params: {
                 type: type,
-                scannedData: data 
-              }
+                scannedData: data,
+              },
             });
           }
         }}
+        onCameraReady={() => {
+          console.log("Camera is ready!");
+        }}
+        onMountError={(error) => {
+          console.log("Camera mount error:", error);
+        }}
       />
-      <Overlay />
     </View>
   );
 }
 
+
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "black",
+  },
+  cameraContainer: {
+    flex: 1,
+    backgroundColor: "green", // Different color to see if container is visible
   },
   camera: {
     flex: 1,
+    backgroundColor: "red", // Temporary red background to see if camera area is visible
+  },
+  debugText: {
+    color: "white",
+    fontSize: 16,
+    textAlign: "center",
+    padding: 10,
+    backgroundColor: "blue",
   },
 });

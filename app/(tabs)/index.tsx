@@ -8,13 +8,15 @@ import { Toast } from "toastify-react-native";
 import NotificationPage from "../../components/NotificationPage";
 import { useAuth } from "../../context/AuthContext";
 import { usePushNotification } from "@/service/usePushNotifications";
+import useBLE from "@/service/ble/useBLE";
 import { setToken } from "@/service/token/setToken";
+import { secureStorage } from '../../src/storage';
 export default function HomeScreen() {
   const { user, userToken } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const { expoPushToken, notification } = usePushNotification(); //top level of the app
-  const notificationData = JSON.stringify(notification, undefined, 2);
-  console.log("im rendered");
+  
+  
   const quickActions = [
     {
       id: 1,
@@ -25,7 +27,7 @@ export default function HomeScreen() {
     {
       id: 2,
       title: "Medication Reminder",
-      icon: "medical",
+      icon: "medkit",
       onPress: () => router.push("/medicationReminder"),
     },
     {
@@ -41,9 +43,14 @@ export default function HomeScreen() {
       onPress: () => Toast.info("Doctor appointment feature coming soon"),
     },
   ];
-  const [data, setData] = useState<number[]>([10, 20, 40, 80]);
-  const healthStats = [
-    { label: "Heart Rate", value: `${data}`, icon: "heart" },
+  
+ 
+   const {
+        connectedDevice,
+        heartRate 
+    } = useBLE()
+     const healthStats = [
+    { label: "Heart Rate", value: heartRate + ' BPM', icon: "heart" },
     { label: "Blood Pressure", value: "120/80", icon: "pulse" },
     { label: "Temperature", value: "98.6°F", icon: "thermometer" },
     { label: "Oxygen Level", value: "98%", icon: "fitness" },
@@ -57,13 +64,13 @@ export default function HomeScreen() {
   useEffect(() => {
     uploadToken();
   }, [expoPushToken?.data, userToken]);
-  useEffect(() => {
-    if (notification) {
-      console.log("📩 Received Notification:", notificationData);
-      setShowNotifications(true);
-    }
-  }, [notification]);
-
+  useEffect(()=>{
+    console.log(connectedDevice)
+    console.log('Connected device changed')
+   if(heartRate){
+    console.log('heart rate in index : ', heartRate)
+   }
+  },[connectedDevice])
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView className="flex-1">
@@ -122,7 +129,7 @@ export default function HomeScreen() {
         </View>
         
         {/* Health Stats */}
-        <View className="mb-6">
+       {connectedDevice? <View className="mb-6">
           <Text className="text-xl font-semibold text-black mb-4 px-5">
             Health Metrics
           </Text>
@@ -145,6 +152,8 @@ export default function HomeScreen() {
             ))}
           </View>
         </View>
+        :
+        null}
 
         {/* Recent Activity */}
         <View className="mb-10">
@@ -196,7 +205,7 @@ export default function HomeScreen() {
         visible={showNotifications}
         onRequestClose={() => setShowNotifications(false)}
       >
-        <NotificationPage onClose={() => setShowNotifications(false)} />
+        <NotificationPage onClose={() => setShowNotifications(false)} notification />
       </Modal>
     </SafeAreaView>
   );

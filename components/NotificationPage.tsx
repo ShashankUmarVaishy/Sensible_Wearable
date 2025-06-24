@@ -1,90 +1,55 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { FlatList, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
+import React ,{useState, useEffect, useRef} from 'react';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import { FlatList, SafeAreaView,RefreshControl, Text, TouchableOpacity, View } from 'react-native';
+import { getNotifications, markAllNotificationAsViewed, clearAllNotifications } from '@/src/notificationStorage'
 
-// Dummy notification data
-const dummyNotifications = [
-  {
-    id: '1',
-    title: 'Medication Reminder',
-    message: 'Time to take your daily medication',
-    time: '10 minutes ago',
-    read: false,
-    type: 'medication'
-  },
-  {
-    id: '2',
-    title: 'Appointment Scheduled',
-    message: 'Your doctor appointment is confirmed for tomorrow at 2:00 PM',
-    time: '2 hours ago',
-    read: true,
-    type: 'appointment'
-  },
-  {
-    id: '3',
-    title: 'Health Alert',
-    message: 'Your heart rate was above normal for 30 minutes today',
-    time: 'Yesterday',
-    read: false,
-    type: 'alert'
-  },
-  {
-    id: '4',
-    title: 'Device Update',
-    message: 'Your Sensible device has a new firmware update available',
-    time: '2 days ago',
-    read: true,
-    type: 'device'
-  },
-  {
-    id: '5',
-    title: 'New Caretaker Added',
-    message: 'John Doe has been added as your caretaker',
-    time: '3 days ago',
-    read: true,
-    type: 'caretaker'
-  }
-];
+dayjs.extend(relativeTime);
 
-// Icon mapping for notification types
-const getNotificationIcon = (type:any) => {
-  switch (type) {
-    case 'medication':
-      return 'medical-outline';
-    case 'appointment':
-      return 'calendar-outline';
-    case 'alert':
-      return 'warning-outline';
-    case 'device':
-      return 'hardware-chip-outline';
-    case 'caretaker':
-      return 'person-add-outline';
-    default:
-      return 'notifications-outline';
-  }
-};
+const NotificationPage = ({ onClose, notification }:any) => {
+    const [refreshing, setRefreshing] = useState(false);
+    const onRefresh = async () => {
+      setRefreshing(true);
+      await loadData();
+      setRefreshing(false);
+    };
+  const [changed, setChanged]= useState<boolean>(false)
+ const [notifications, setNotifications] = useState([]);
 
-const NotificationPage = ({ onClose }:any) => {
+  const loadData = async () => {
+    const data = await getNotifications();
+   console.log(data)
+    setNotifications(data);
+    
+  };
+
+  useEffect(() => {
+    
+    console.log('Loading data...');
+    loadData();
+  }, [notification,changed]);
+
+
   const renderNotificationItem = ({ item }:any) => (
     <TouchableOpacity 
       className={`flex-row items-center p-4 border-b border-gray-200 ${item.read ? 'bg-white' : 'bg-gray-50'}`}
     >
-      <View className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center mr-3">
-        <Ionicons name={getNotificationIcon(item.type)} size={20} color="black" />
-      </View>
       <View className="flex-1">
         <View className="flex-row justify-between items-center">
           <Text className="text-base font-semibold text-black">{item.title}</Text>
-          {!item.read && <View className="w-2 h-2 rounded-full bg-black" />}
+          {!item.viewed && <View className="w-2 h-2 rounded-full bg-black" />}
         </View>
-        <Text className="text-sm text-gray-700 mt-1">{item.message}</Text>
-        <Text className="text-xs text-gray-500 mt-1">{item.time}</Text>
+        <Text className="text-sm text-gray-700 mt-1">{item.body}</Text>
+        <Text className="text-xs text-gray-500 mt-1"> {dayjs(item.timestamp).fromNow()} {item.viewed ? '(Viewed)' : '(New)'}</Text>
       </View>
     </TouchableOpacity>
   );
 
+
+
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 flex-col justify-between bg-white">
       <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
         <Text className="text-xl font-bold text-black">Notifications</Text>
         <TouchableOpacity onPress={onClose} className="p-2">
@@ -92,8 +57,8 @@ const NotificationPage = ({ onClose }:any) => {
         </TouchableOpacity>
       </View>
       
-      <FlatList
-        data={dummyNotifications}
+        <FlatList
+        data={notifications}
         renderItem={renderNotificationItem}
         keyExtractor={item => item.id}
         className="flex-1"
@@ -103,11 +68,40 @@ const NotificationPage = ({ onClose }:any) => {
             <Text className="text-gray-500 text-center mt-4">No notifications yet</Text>
           </View>
         }
+        refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          // Optional: Customize colors
+          tintColor="#007bff" // iOS
+          colors={['#007bff']} // Android
+          progressBackgroundColor="#ffffff" // Android
+        />
+      }
       />
       
-      <TouchableOpacity className="m-4 p-4 bg-black rounded-lg items-center">
-        <Text className="text-white font-semibold">Mark All as Read</Text>
+   
+      <View className='flex-row justify-around'>
+
+      
+      <TouchableOpacity className="m-4 py-4 px-8 bg-black rounded-lg items-center"
+       onPress={async()=>{
+        await markAllNotificationAsViewed()
+        setChanged(v=>!v)
+      }}
+      >
+        <Text className="text-white font-semibold">All Read</Text>
       </TouchableOpacity>
+      <TouchableOpacity className="m-4 py-4 px-8 bg-black rounded-lg items-center"
+      onPress={async()=>{
+        setChanged(v=>!v)
+        await clearAllNotifications()
+        
+      }}
+      >
+        <Text className="text-white font-semibold">Delete All</Text>
+      </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };

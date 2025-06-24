@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { PermissionsAndroid, Platform } from "react-native";
 import { BleError, BleManager, Characteristic, Device } from "react-native-ble-plx";
 import base64 from "react-native-base64";
+import { Toast } from "toastify-react-native";
 interface BluetoothLowEnergyApi {
   requestPermissions(): Promise<boolean>;
   scanForPeripherals(): void;
@@ -14,9 +15,9 @@ interface BluetoothLowEnergyApi {
   heartRate: number;
   disconnectFromDevice():void;
 }
-const HEART_RATE_UUID="0000002A37-0000-1000-8000-00805f9b34fb"; //this is the heart rate characteristic id
-const HEART_RATE_CHARACTERISTIC="0000180D-0000-1000-8000-00805f9b34fb"; //this is the heart rate service id
-//characteristic and service id is unique to devvice we'll have to check device manual OR firmware engineer
+const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
+const CHAR_HR_UUID =  "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+//characteristic and service id is unique to device we'll have to check device manual OR firmware engineer
 
 function useBLE(): BluetoothLowEnergyApi {
   const bleManager = useMemo(() => new BleManager(), []);
@@ -90,8 +91,7 @@ function useBLE(): BluetoothLowEnergyApi {
 
   const scanForPeripherals = () => {
     bleManager.startDeviceScan(null,null, (error,device)=>{
-        if(error){
-            console.log('Error scanning:', error)
+        if(error){Toast.error(error.message)
         }
         if(device && device.name ) {
             //add your device name && device.name.includes("Heart Rate")
@@ -118,7 +118,6 @@ function useBLE(): BluetoothLowEnergyApi {
   const onHeartRateUpdate = (
     error  : BleError | null,
     characteristic: Characteristic | null,
-
   )=>{
     if (error) {
         console.log('Error reading characteristic:', error);
@@ -130,22 +129,25 @@ function useBLE(): BluetoothLowEnergyApi {
     }
 
     const rawData= base64.decode(characteristic.value);
-    let innerheartRate: number= -1;
-    const firstBiValue : number = Number(rawData) && 0x01
-    if(firstBiValue === 0){
-        innerheartRate = rawData[1].charCodeAt(0)
-    }else{
-        innerheartRate =
-        Number(rawData[1].charCodeAt(0)<<8)+
-        Number(rawData[2].charCodeAt(2));
-    }
-    setHeartRate(innerheartRate);
+    console.log('raw data :',rawData);
+    setHeartRate(rawData.HR)
+    console.log('heart rate :',heartRate);
+    // let innerheartRate: number= -1;
+    // const firstBiValue : number = Number(rawData) && 0x01
+    // if(firstBiValue === 0){
+    //     innerheartRate = rawData[1].charCodeAt(0)
+    // }else{
+    //     innerheartRate =
+    //     Number(rawData[1].charCodeAt(0)<<8)+
+    //     Number(rawData[2].charCodeAt(2));
+    // }
+    // setHeartRate(innerheartRate);
   }
   const startStreamingData=async (device:Device)=>{
     if(device){
         device.monitorCharacteristicForService(
-            HEART_RATE_UUID,
-            HEART_RATE_CHARACTERISTIC,
+            SERVICE_UUID,
+            CHAR_HR_UUID,
             onHeartRateUpdate
         )
     }else{

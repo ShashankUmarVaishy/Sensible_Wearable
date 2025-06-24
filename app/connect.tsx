@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import useBLE from '../service/ble/useBLE'
@@ -24,7 +24,9 @@ const Connect = () => {
             scanForPeripherals();
         }
     }
-    
+    useEffect(() => {
+        
+    }, [connectedDevice])
     const hideModal = () => {
         setIsModalVisible(false);
     }

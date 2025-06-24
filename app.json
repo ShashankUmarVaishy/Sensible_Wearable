@@ -35,12 +35,6 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      //"@config-plugins/react-native-ble-plx",
-      //"@react-native-async-storage/async-storage",
-      // "react-native-reanimated/plugin",
-      //"react-native-screens",
-      //"react-native-safe-area-context",
-      //"react-native-svg",
       "expo-router",
       [
         "expo-splash-screen",
@@ -65,7 +59,8 @@
           "icon": "./assets/images/notification-icon.png",
           "color": "#ffffff"
         }
-      ]
+      ],
+      "expo-background-task"
     ],
     "experiments": {
       "typedRoutes": true

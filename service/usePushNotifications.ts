@@ -110,7 +110,7 @@ import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { useEffect, useRef, useState } from "react";
 import { Alert, Platform } from "react-native";
-
+import { addNotification } from "@/src/notificationStorage";
 export interface PushNotificationState {
   notification?: Notifications.Notification;
   expoPushToken?: Notifications.ExpoPushToken;
@@ -120,8 +120,8 @@ export const usePushNotification = (): PushNotificationState => {
   const [expoPushToken, setExpoPushToken] = useState<Notifications.ExpoPushToken | undefined>();
   const [notification, setNotification] = useState<Notifications.Notification | undefined>();
 
-  const notificationListener = useRef<Notifications.Subscription | null>(null);
-  const responseListener = useRef<Notifications.Subscription | null>(null);
+  const notificationListener = useRef<Notifications.EventSubscription | null>(null);
+  const responseListener = useRef<Notifications.EventSubscription | null>(null);
 
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -135,7 +135,7 @@ export const usePushNotification = (): PushNotificationState => {
 
   async function registerForPushNotificationsAsync() {
     if (!Device.isDevice) {
-      console.log("❌ Not a real device — push notifications won't work.");
+      console.log("Not a real device — push notifications won't work.");
       return;
     }
 
@@ -158,7 +158,7 @@ export const usePushNotification = (): PushNotificationState => {
       console.log("✅ Got Expo Push Token:", token.data);
       setExpoPushToken(token);
     } catch (err) {
-      console.error("❌ Error fetching Expo Push Token:", err);
+      console.error("Error fetching Expo Push Token:", err);
     }
 
     if (Platform.OS === "android") {
@@ -177,12 +177,24 @@ export const usePushNotification = (): PushNotificationState => {
     })();
 
     notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
-      console.log("📩 Notification received:", notification);
+      console.log(" Notification received:");
+      const newNotif = {
+       id:  notification.date,
+      title: notification.request.trigger?.remoteMessage.data.title,
+      body: notification.request.content.body,
+      timestamp: notification.date,
+      viewed: false
+      }
+      console.log('new notif', newNotif);
+
+    addNotification(newNotif);
+    console.log('notif added in  usePushNotification');
       setNotification(notification);
+      console.log('set notification in usePushNotification ');
     });
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log("🔁 Notification response received:", response);
+      console.log("Notification response received:", response);
     });
 
     return () => {

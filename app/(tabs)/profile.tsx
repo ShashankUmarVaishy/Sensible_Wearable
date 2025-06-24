@@ -3,10 +3,10 @@ import { useCameraPermissions } from "expo-camera";
 import { router } from 'expo-router';
 import React from 'react';
 import {
-  Alert,
-  Text,
-  TouchableOpacity,
-  View
+    Alert,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Toast } from 'toastify-react-native';
@@ -54,6 +54,13 @@ export default function ProfileScreen() {
       params: { type: 'caretaker' }
     });
   };
+
+  const handleAddPatient = () => {
+    router.push({
+      pathname: '/addHandler',
+      params: { type: 'patient' }
+    });
+  };
   
   const handleAddDevice = () => {
     router.push({
@@ -61,27 +68,37 @@ export default function ProfileScreen() {
     });
   };
 
+  const handlePersonalInfo = () => {
+    router.push('/personalInfo');
+  };
+
   const profileOptions = [
     {
       id: 1,
-      title: 'Add Caretaker',
+      title: 'Add Patient',
       icon: 'person-add-outline',
-      onPress: handleAddCaretaker,
+      onPress: handleAddPatient,
     },
     {
       id: 2,
-      title: 'Personal Information',
-      icon: 'person-outline',
-      onPress: () => Toast.info('Edit personal information feature coming soon'),
+      title: 'Add Caretaker',
+      icon: 'people-outline',
+      onPress: handleAddCaretaker,
     },
     {
       id: 3,
+      title: 'Personal Information',
+      icon: 'person-outline',
+      onPress: handlePersonalInfo,
+    },
+    {
+      id: 4,
       title: 'Add Sensible Device',
       icon: 'hardware-chip-outline',
       onPress: handleAddDevice
     },
     {
-      id: 4,
+      id: 5,
       title: 'Emergency Contacts',
       icon: 'call-outline',
       onPress: () => Toast.info('Manage emergency contacts feature coming soon'),
