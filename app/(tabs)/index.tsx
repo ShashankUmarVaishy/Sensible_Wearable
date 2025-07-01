@@ -10,13 +10,26 @@ import { useAuth } from "../../context/AuthContext";
 import { usePushNotification } from "@/service/usePushNotifications";
 import useBLE from "@/service/ble/useBLE";
 import { setToken } from "@/service/token/setToken";
-import { secureStorage } from '../../src/storage';
+import { secureStorage } from "../../src/storage";
+import HealthStats from "@/components/HealthStats";
+import BackgroundJob from "react-native-background-actions";
+import { useBLEStore } from "@/service/ble/bleStore";
 export default function HomeScreen() {
   const { user, userToken } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const { expoPushToken, notification } = usePushNotification(); //top level of the app
-  
-  
+  const data= useBLEStore((state)=>state.data)
+  const connectedDevice=useBLEStore((state)=>state.connectedDevice)
+  const stopForegroundTask = async () => {
+    try {
+      console.log("Stopping foreground task");
+      await BackgroundJob.stop();
+      Toast.error("Background service stopped");
+    } catch (error) {
+      Toast.error(`Task could not be stopped. Error: ${error}`);
+    }
+  };
+
   const quickActions = [
     {
       id: 1,
@@ -38,23 +51,21 @@ export default function HomeScreen() {
     },
     {
       id: 4,
-      title: "Doctor Appointment",
-      icon: "calendar",
-      onPress: () => Toast.info("Doctor appointment feature coming soon"),
+      title: "Stop BG Tasks",
+      icon: "stop",
+      onPress: async () => {
+        try {
+          await stopForegroundTask();
+          await disconnectFromDevice();
+          Toast.success('BG tasks stopped');
+        } catch (error) {
+          Toast.error(error?.message ? error.message : 'unknown error');
+        }
+      },
     },
   ];
-  
- 
-   const {
-        connectedDevice,
-        heartRate 
-    } = useBLE()
-     const healthStats = [
-    { label: "Heart Rate", value: heartRate + ' BPM', icon: "heart" },
-    { label: "Blood Pressure", value: "120/80", icon: "pulse" },
-    { label: "Temperature", value: "98.6°F", icon: "thermometer" },
-    { label: "Oxygen Level", value: "98%", icon: "fitness" },
-  ];
+
+  const { disconnectFromDevice } = useBLE();
 
   const uploadToken = async () => {
     if (expoPushToken?.data && userToken) {
@@ -64,13 +75,10 @@ export default function HomeScreen() {
   useEffect(() => {
     uploadToken();
   }, [expoPushToken?.data, userToken]);
-  useEffect(()=>{
-    console.log(connectedDevice)
-    console.log('Connected device changed')
-   if(heartRate){
-    console.log('heart rate in index : ', heartRate)
-   }
-  },[connectedDevice])
+  useEffect(() => {
+    console.log(connectedDevice);
+    console.log("Connected device changed in index page : ", connectedDevice);
+  }, [connectedDevice]);
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView className="flex-1">
@@ -127,33 +135,9 @@ export default function HomeScreen() {
             ))}
           </View>
         </View>
-        
+
         {/* Health Stats */}
-       {connectedDevice? <View className="mb-6">
-          <Text className="text-xl font-semibold text-black mb-4 px-5">
-            Health Metrics
-          </Text>
-          <View className="px-5 space-y-3">
-            {healthStats.map((stat, index) => (
-              <View
-                key={index}
-                className="bg-white p-4 rounded-xl border border-gray-200"
-              >
-                <View className="flex-row items-center mb-2">
-                  <Ionicons name={stat.icon as any} size={20} color="black" />
-                  <Text className="text-sm text-gray-600 ml-2">
-                    {stat.label}
-                  </Text>
-                </View>
-                <Text className="text-xl font-semibold text-black">
-                  {stat.value}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
-        :
-        null}
+        <HealthStats />
 
         {/* Recent Activity */}
         <View className="mb-10">
@@ -205,7 +189,10 @@ export default function HomeScreen() {
         visible={showNotifications}
         onRequestClose={() => setShowNotifications(false)}
       >
-        <NotificationPage onClose={() => setShowNotifications(false)} notification />
+        <NotificationPage
+          onClose={() => setShowNotifications(false)}
+          notification
+        />
       </Modal>
     </SafeAreaView>
   );

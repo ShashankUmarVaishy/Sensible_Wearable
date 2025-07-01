@@ -3,6 +3,7 @@ import React, { createContext, ReactNode, useContext, useEffect, useState } from
 import { getUserInfo } from '../service/user/getUserInfo';
 import { secureStorage } from '../src/storage';
 import { removeToken } from '@/service/token/removeToken';
+import { Toast } from 'toastify-react-native';
 interface User {
   id: string;
   name: string;
@@ -47,32 +48,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const checkAuthState = async () => {
     try {
-      console.log('Checking auth state...');
+
       const storedToken = await secureStorage.getString('userToken');
-      console.log('Stored token:', storedToken ? 'exists' : 'not found');
+  
       
       if (storedToken) {
         // Verify token with backend
-        console.log('Verifying token with backend...');
+
         const userData = await getUserInfo(storedToken);
-        console.log('User data:', userData);
+       
         
         if (userData.success) {
-          console.log('Token is valid, setting user data');
+        
           setUser(userData.user);
+          await secureStorage.set('@username', userData.user.name);
           setUserToken(storedToken);
         } else {
           // Token is invalid, remove it
-          console.log('Token is invalid, removing it');
+        
           await secureStorage.delete('userToken');
+          await secureStorage.delete('@username');
         }
       } else {
-        console.log('No token found');
+       Toast.info('Please login again')
       }
     } catch (error) {
-      console.error('Error checking auth state:', error);
+      Toast.error('Error checking auth state');
       // If there's an error, clear the token
       await secureStorage.delete('userToken');
+      await secureStorage.delete('@username');
     } finally {
       console.log('Auth check complete, setting isLoading to false');
       setIsLoading(false);
@@ -85,6 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(userData);
     setUserToken(userToken);
     await secureStorage.set('userToken', userToken);
+    await secureStorage.set('@username', userData.name);
     console.log('User logged in successfully');
   };
 
@@ -94,6 +99,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUserToken(null);
     await removeToken(userToken);
     await secureStorage.delete('userToken');
+    await secureStorage.delete('@username');
     
     // Clear medication data from AsyncStorage
     try {

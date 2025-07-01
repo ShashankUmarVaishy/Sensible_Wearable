@@ -24,7 +24,8 @@
         "android.permission.VIBRATE",
         "android.permission.WAKE_LOCK",
         "android.permission.USE_FULL_SCREEN_INTENT",
-        "android.permission.SYSTEM_ALERT_WINDOW"
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.FOREGROUND_SERVICE"
       ],
       "package": "com.b23cs019.sensible_wearable",
       "googleServicesFile": "./android/app/google-services.json"
@@ -60,7 +61,18 @@
           "color": "#ffffff"
         }
       ],
-      "expo-background-task",
+      [
+        "react-native-ble-plx",
+        {
+          "isBackgroundEnabled": true,
+          "modes": [
+            "peripheral",
+            "central"
+          ],
+          "bluetoothAlwaysPermission": "Allow $(PRODUCT_NAME) to connect to bluetooth devices"
+        }
+      ],
+      
       "expo-web-browser"
     ],
     "experiments": {

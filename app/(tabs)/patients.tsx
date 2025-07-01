@@ -36,8 +36,13 @@ export default function PatientsScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const sendNotification=async(id:string)=>{
-    const res=await notificationToUser(userToken,id,'Hello','This is a test message')
+    const res=await notificationToUser(userToken?userToken:'',user?.name?user.name:'user',id,8)
     console.log('response : ',res)
+    if(res.success){
+      Toast.success("Notification sent successfully");
+    }else{
+      Toast.error("Try contacting him as notification is not sent")
+    }
   }
 
   const fetchPatients = async () => {

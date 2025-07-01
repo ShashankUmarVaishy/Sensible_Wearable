@@ -85,8 +85,9 @@ export default function PatientsScreen() {
   // Sort patients by status priority: critical -> needs-attention -> stabl
 
   const handleCaretakerPress = async(caretakerId: string) => {
-    const response = await notificationToUser(userToken, caretakerId,"I'm patient","This is notification Body");
-    
+    const response = await notificationToUser(userToken?userToken:'',user?.name?user.name:'user', caretakerId,1);
+    if(response.success)Toast.success('Caretaker Pinged')
+      else{Toast.error('Try Contacting, not pinged')}
   };
 
   const handleAddCaretaker = () => {
@@ -101,7 +102,7 @@ export default function PatientsScreen() {
       <SafeAreaView className="flex-1 bg-white">
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#4F46E5" />
-          <Text className="text-base text-gray-600 mt-4">Loading patients...</Text>
+          <Text className="text-base text-gray-600 mt-4">Loading caretakers...</Text>
         </View>
       </SafeAreaView>
     );
@@ -157,7 +158,7 @@ export default function PatientsScreen() {
               <TouchableOpacity
                 key={caretaker.id}
                 className="bg-white rounded-xl p-5 mb-4 border border-gray-200"
-                onPress={() => handleCaretakerPress(caretaker)}
+                onPress={() => handleCaretakerPress(caretaker.id)}
               >
                 <View className="flex-row items-center mb-4">
                   <View className="w-12 h-12 rounded-full bg-gray-100 justify-center items-center mr-3">

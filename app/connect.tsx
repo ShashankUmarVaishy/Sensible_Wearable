@@ -5,15 +5,16 @@ import { Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import useBLE from '../service/ble/useBLE'
 import DeviceModal from './DeviceConnectionModal'
-
+import { useBLEStore } from '@/service/ble/bleStore'; // ✅ Zustand store
 const Connect = () => {
+      const data = useBLEStore((state) => state.data);
+      const connectedDevice = useBLEStore((state) => state.connectedDevice);
     const {
         requestPermissions,
         scanForPeripherals,
         allDevices,
         connectToDevice,
-        connectedDevice,
-        heartRate,
+        //connectedDevice,
         disconnectFromDevice,
     } = useBLE()
     const [isModalVisible, setIsModalVisible] = React.useState(false);
@@ -25,7 +26,14 @@ const Connect = () => {
         }
     }
     useEffect(() => {
-        
+        console.log('Connected device changed in connect.tsx :', connectedDevice);
+        if (connectedDevice) {
+            console.log('Device connected :', connectedDevice.name);
+            // Close the modal when device connects
+            setIsModalVisible(false);
+        } else {
+            console.log('No device connected');
+        }
     }, [connectedDevice])
     const hideModal = () => {
         setIsModalVisible(false);
@@ -51,11 +59,21 @@ const Connect = () => {
             </View>
             
             <View className="flex-1 justify-center items-center px-4">
+                {/* Debug info */}
+                <Text className="text-xs text-gray-500 mb-2">
+                    Debug: Connected Device: {connectedDevice ? 'YES' : 'NO'} | Heart Rate: {data[1]}
+                </Text>
+                
                 {connectedDevice ? (
                     <View className="bg-gray-100 p-6 rounded-lg w-full items-center mb-6">
                         <Ionicons name="checkmark-circle" size={48} color="black" />
                         <Text className="text-lg font-bold text-black mt-2">Connected to device</Text>
                         <Text className="text-sm text-gray-700 mt-1">{connectedDevice.name}</Text>
+                        {data.length>0 && data[1] && (
+                            <Text className="text-lg font-bold text-red-600 mt-2">
+                                Heart Rate: {data[1]} BPM
+                            </Text>
+                        )}
                         
                         <TouchableOpacity 
                             className="bg-black py-3 px-6 rounded-lg mt-4"
